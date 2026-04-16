@@ -1,0 +1,29 @@
+[0;35m╔═══════════════════════════════════════════════════════════╗[0m
+[0;35m║[0m      [0;36mAutomação de Build - Emacspeak 30.0 Debian[0m        [0;35m║[0m
+[0;35m╚═══════════════════════════════════════════════════════════╝[0m
+
+[0;34mℹ[0m Iniciando build em: /Users/akira/dados/dev/emacspeak-a11ydevs
+[0;34mℹ[0m Output directory: /Users/akira/dados/dev/emacspeak-a11ydevs/output
+[0;34mℹ[0m Log file: /Users/akira/dados/dev/emacspeak-a11ydevs/logs/build_20260415_232608.log
+
+
+[0;36m[Passo 1][0m Verificando pré-requisitos
+[0;32m✓[0m Docker instalado: 28.3.2
+[0;32m✓[0m Docker Compose instalado: v2.38.2-desktop.1
+[0;32m✓[0m Docker daemon está rodando
+[0;32m✓[0m Arquivo encontrado: Dockerfile
+[0;32m✓[0m Arquivo encontrado: docker-compose.yml
+[0;32m✓[0m Arquivo encontrado: debian/control
+[0;32m✓[0m Arquivo encontrado: debian/rules
+[0;32m✓[0m Arquivo encontrado: scripts/build-package.sh
+[0;32m✓[0m Arquivo encontrado: scripts/test-package.sh
+[0;32m✓[0m Todos os pré-requisitos verificados!
+
+[0;36m[Passo 2][0m Preparando ambiente
+[0;32m✓[0m Diretórios criados
+[0;32m✓[0m Permissões configuradas
+
+[0;36m[Passo 3][0m Construindo imagem Docker (builder)
+[0;34mℹ[0m Executando: Build de imagem Docker builder
+[0;31m✗[0m Build de imagem Docker builder - FALHOU
+[0;31m✗[0m Falha ao construir imagem builder

@@ -1,0 +1,47 @@
+Source: emacspeak
+Section: editors
+Priority: optional
+Maintainer: A11yDevs <dev@a11ydevs.org>
+Build-Depends: debhelper (>= 13),
+               emacs-nox,
+               tcl8.6-dev,
+               tclx8.4,
+               libespeak-ng-dev,
+               make,
+               gcc,
+               g++
+Standards-Version: 4.6.2
+Homepage: https://github.com/tvraman/emacspeak
+Vcs-Browser: https://github.com/A11yDevs/emacspeak-a11ydevs
+Vcs-Git: https://github.com/A11yDevs/emacspeak-a11ydevs.git
+Rules-Requires-Root: no
+
+Package: emacspeak
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         emacs-nox | emacs-gtk | emacs-lucid | emacs,
+         tcl,
+         tclx8.4,
+         espeak-ng,
+         espeak-ng-data
+Recommends: libespeak-ng-dev,
+            socat
+Suggests: w3m,
+          mp3-info,
+          vorbis-tools,
+          sox
+Description: Sistema completo de fala para o emacs
+ O Emacspeak é um sistema completo de fala auditiva para o Emacs
+ que abre um novo horizonte no modo como interagimos com computadores.
+ Ao ampliar o paradigma padrão de 2-D em GUIs, o Emacspeak permite
+ acesso sem visão, tanto localmente quanto remotamente, a toda a
+ potência do ambiente Emacs.
+ .
+ Este pacote inclui:
+  * Interface de fala completa para o Emacs
+  * Módulos de fala para diversos modos do Emacs
+  * Servidor TTS nativo para espeak-ng
+  * Suporte a múltiplos sintetizadores de voz
+  * Ícones auditivos e retorno sonoro
+  * Acesso a aplicações web acessíveis

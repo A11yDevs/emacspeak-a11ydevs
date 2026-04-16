@@ -1,0 +1,5 @@
+# Instalação de arquivos do Emacspeak
+# O diretório base será /opt/emacspeak/
+
+# Os arquivos já são copiados pelo rules, este arquivo
+# documenta a estrutura de instalação esperada

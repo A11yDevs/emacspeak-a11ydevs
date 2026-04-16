@@ -1,0 +1,40 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Cria diretório para cache de native compilation se não existir
+        if [ ! -d "/opt/emacspeak/eln" ]; then
+            mkdir -p /opt/emacspeak/eln
+            chmod 755 /opt/emacspeak/eln
+        fi
+
+        # Garante que os servidores TTS sejam executáveis
+        if [ -f "/opt/emacspeak/servers/espeak" ]; then
+            chmod +x /opt/emacspeak/servers/espeak
+        fi
+
+        if [ -f "/opt/emacspeak/servers/espeak-socat" ]; then
+            chmod +x /opt/emacspeak/servers/espeak-socat
+        fi
+
+        if [ -f "/opt/emacspeak/servers/native-espeak/libtclespeak.so" ]; then
+            chmod 755 /opt/emacspeak/servers/native-espeak/libtclespeak.so
+        fi
+
+        echo "Emacspeak 30.0 instalado com sucesso!"
+        echo "Para iniciar, execute: emacs e carregue /opt/emacspeak/lisp/emacspeak-setup.el"
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst chamado com argumento desconhecido \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

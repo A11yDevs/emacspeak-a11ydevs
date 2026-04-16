@@ -1,0 +1,193 @@
+name: Build and Test Emacspeak Debian Package
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  EMACSPEAK_VERSION: 60.0
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  build:
+    name: Build Debian Package
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build builder image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        target: builder
+        tags: emacspeak-builder:${{ env.EMACSPEAK_VERSION }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        load: true
+
+    - name: Extract packages
+      run: |
+        mkdir -p output
+        CONTAINER_ID=$(docker create emacspeak-builder:${{ env.EMACSPEAK_VERSION }})
+        docker cp ${CONTAINER_ID}:/build/ output/
+        docker rm ${CONTAINER_ID}
+        find output/build/ -name "*.deb" -exec mv {} output/ \;
+        find output/build/ -name "*.buildinfo" -exec mv {} output/ \;
+        find output/build/ -name "*.changes" -exec mv {} output/ \;
+
+    - name: List generated packages
+      run: |
+        echo "=== Packages generated ==="
+        ls -lh output/*.deb || echo "No .deb packages found"
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: debian-packages
+        path: |
+          output/*.deb
+          output/*.buildinfo
+          output/*.changes
+        retention-days: 30
+
+  test:
+    name: Test Debian Package
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build tester image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        target: tester
+        tags: emacspeak-tester:${{ env.EMACSPEAK_VERSION }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        load: true
+
+    - name: Run tests
+      run: |
+        docker run --rm emacspeak-tester:${{ env.EMACSPEAK_VERSION }}
+
+    - name: Test results summary
+      if: always()
+      run: |
+        echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "Tests completed. Check logs for details." >> $GITHUB_STEP_SUMMARY
+
+  lint:
+    name: Lint Package
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: debian-packages
+        path: output/
+
+    - name: Run lintian
+      run: |
+        docker run --rm -v "$(pwd)/output:/packages" debian:trixie-slim bash -c \
+          "apt-get update -qq && apt-get install -y -qq lintian && \
+           lintian /packages/*.deb || true"
+
+    - name: Lintian summary
+      if: always()
+      run: |
+        echo "### Lintian Results" >> $GITHUB_STEP_SUMMARY
+        echo "Lintian check completed. Review logs for any issues." >> $GITHUB_STEP_SUMMARY
+
+  release:
+    name: Create Release
+    needs: [build, test, lint]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: debian-packages
+        path: output/
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          output/*.deb
+          output/*.buildinfo
+          output/*.changes
+        body: |
+          ## Emacspeak ${{ env.EMACSPEAK_VERSION }} - Debian Package
+
+          Pacotes Debian para Emacspeak ${{ env.EMACSPEAK_VERSION }}
+
+          ### Instalação
+
+          ```bash
+          sudo dpkg -i emacspeak_${{ env.EMACSPEAK_VERSION }}-1_*.deb
+          sudo apt-get install -f
+          ```
+
+          ### Arquivos Incluídos
+
+          - `emacspeak_*.deb` - Pacote principal
+          - `*.buildinfo` - Informações de build
+          - `*.changes` - Changelog Debian
+
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  runtime:
+    name: Test Runtime Image
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build runtime image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        target: runtime
+        tags: emacspeak-runtime:${{ env.EMACSPEAK_VERSION }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        load: true
+
+    - name: Test runtime image
+      run: |
+        docker run --rm emacspeak-runtime:${{ env.EMACSPEAK_VERSION }} \
+          emacs --batch --eval '(message "Emacs runtime OK")'

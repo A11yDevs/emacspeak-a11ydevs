@@ -1,0 +1,14 @@
+emacspeak (60.0-1) unstable; urgency=medium
+
+  * Versão inicial do pacote Debian para Emacspeak 60.0
+  * Compilação nativa com pré-compilação de arquivos .el
+  * Suporte a espeak-ng como sintetizador padrão
+  * Servidor TTS nativo compilado
+  * Servidor espeak-socat para relay TCP (macOS)
+  * Configuração otimizada para JIT compilation
+  * Suporte a cache persistente de native compilation
+  * Integração completa com Debian Trixie
+  * Scripts de inicialização e configuração automática
+  * Testes automatizados no container
+
+ -- A11yDevs <dev@a11ydevs.org>  Mon, 15 Apr 2026 00:00:00 -0300

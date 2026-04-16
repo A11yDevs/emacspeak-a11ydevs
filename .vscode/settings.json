@@ -1,0 +1,43 @@
+{
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "editor.formatOnSave": true,
+    "editor.rulers": [
+        80,
+        120
+    ],
+    // Shell script settings
+    "shellformat.flag": "-i 4 -ci",
+    "shellcheck.enable": true,
+    "shellcheck.run": "onSave",
+    // Markdown settings
+    "markdown.extension.toc.levels": "2..6",
+    "markdown.extension.preview.autoShowPreviewToSide": true,
+    // YAML settings
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml"
+    },
+    // Docker
+    "docker.showStartPage": false,
+    // Files associations
+    "files.associations": {
+        "Dockerfile*": "dockerfile",
+        "*.yml": "yaml",
+        "Makefile": "makefile",
+        "debian/rules": "makefile",
+        "debian/control": "debian-control",
+        "debian/changelog": "debian-changelog"
+    },
+    // Exclude patterns
+    "files.exclude": {
+        "**/.git": true,
+        "**/output": true,
+        "**/workspace": true
+    },
+    "search.exclude": {
+        "**/output": true,
+        "**/workspace": true,
+        "**/*.deb": true
+    }
+}

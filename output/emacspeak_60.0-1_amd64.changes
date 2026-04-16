@@ -1,0 +1,37 @@
+Format: 1.8
+Date: Mon, 15 Apr 2026 00:00:00 -0300
+Source: emacspeak
+Binary: emacspeak emacspeak-dbgsym
+Architecture: amd64
+Version: 60.0-1
+Distribution: unstable
+Urgency: medium
+Maintainer: A11yDevs <dev@a11ydevs.org>
+Changed-By: A11yDevs <dev@a11ydevs.org>
+Description:
+ emacspeak  - Sistema completo de fala para o emacs
+Changes:
+ emacspeak (60.0-1) unstable; urgency=medium
+ .
+   * Versão inicial do pacote Debian para Emacspeak 60.0
+   * Compilação nativa com pré-compilação de arquivos .el
+   * Suporte a espeak-ng como sintetizador padrão
+   * Servidor TTS nativo compilado
+   * Servidor espeak-socat para relay TCP (macOS)
+   * Configuração otimizada para JIT compilation
+   * Suporte a cache persistente de native compilation
+   * Integração completa com Debian Trixie
+   * Scripts de inicialização e configuração automática
+   * Testes automatizados no container
+Checksums-Sha1:
+ 32ac79358f0f3705ee9fd5f8eda472264d0770e9 107928 emacspeak-dbgsym_60.0-1_amd64.deb
+ 4c650d148cb8b6291e8136adc52b07a9667ceb6a 6234 emacspeak_60.0-1_amd64.buildinfo
+ 410cc6a1aedc44cf082ce03c209addd8ffa5d863 4332092 emacspeak_60.0-1_amd64.deb
+Checksums-Sha256:
+ d950604257d4338482511e9180f63360001f4d0111fef372a5711d32aa711754 107928 emacspeak-dbgsym_60.0-1_amd64.deb
+ 245d8a364cfd550b451b056972b479ef4e20faee0d92b97feef58ef12cd4bcc2 6234 emacspeak_60.0-1_amd64.buildinfo
+ 89d542bd6eb8e7346e5ecb7a855b7018151d20db1c03251f9b386990b32d5a21 4332092 emacspeak_60.0-1_amd64.deb
+Files:
+ 591c555da8e0023bcab26f2d1561d999 107928 debug optional emacspeak-dbgsym_60.0-1_amd64.deb
+ 3c353cf78230744c8a0882af748edd1a 6234 editors optional emacspeak_60.0-1_amd64.buildinfo
+ d1db901d180a9dd645a5a5f037085892 4332092 editors optional emacspeak_60.0-1_amd64.deb

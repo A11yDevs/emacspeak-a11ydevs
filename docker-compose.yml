@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # Serviço para construir o pacote Debian
+  builder:
+    build:
+      context: .
+      target: builder
+      dockerfile: Dockerfile
+    image: emacspeak-builder:60.0
+    container_name: emacspeak-builder
+    volumes:
+      - build-output:/build
+      - ./output:/output
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+      - EMACSPEAK_VERSION=60.0
+    command: >
+      bash -c "
+      cp /build/*.deb /output/ 2>/dev/null || true &&
+      cp /build/*.buildinfo /output/ 2>/dev/null || true &&
+      cp /build/*.changes /output/ 2>/dev/null || true &&
+      echo 'Pacotes copiados para ./output/' &&
+      ls -lh /output/
+      "
+
+  # Serviço para testar o pacote
+  tester:
+    build:
+      context: .
+      target: tester
+      dockerfile: Dockerfile
+    image: emacspeak-tester:60.0
+    container_name: emacspeak-tester
+    depends_on:
+      - builder
+    volumes:
+      - eln-cache:/root/.emacs.d/eln-cache
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+      - DTK_PROGRAM=espeak
+      - EMACS_ELN_CACHE=/root/.emacs.d/eln-cache
+    stdin_open: true
+    tty: true
+
+  # Serviço runtime para uso interativo do Emacspeak
+  runtime:
+    build:
+      context: .
+      target: runtime
+      dockerfile: Dockerfile
+    image: emacspeak-runtime:60.0
+    container_name: emacspeak-runtime
+    volumes:
+      - eln-cache:/root/.emacs.d/eln-cache
+      - workspace:/workspace
+      - ./workspace:/workspace/local
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+      - DTK_PROGRAM=espeak
+      - EMACS_ELN_CACHE=/root/.emacs.d/eln-cache
+      - DTK_SPEECH_SERVER=${DTK_SPEECH_SERVER:-espeak}
+    ports:
+      - "5500:5500"  # Porta para espeak-socat (macOS)
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    command: /usr/local/bin/start-emacspeak.sh
+
+volumes:
+  # Volume para armazenar os artefatos de build
+  build-output:
+    driver: local
+
+  # Volume para cache de native compilation do Emacs
+  eln-cache:
+    driver: local
+
+  # Volume para workspace do usuário
+  workspace:
+    driver: local
+
+networks:
+  default:
+    name: emacspeak-network

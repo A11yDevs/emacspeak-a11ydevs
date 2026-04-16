@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "ms-azuretools.vscode-docker",
+        "editorconfig.editorconfig",
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "redhat.vscode-yaml",
+        "james-yu.latex-workshop"
+    ]
+}

@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export EMACSPEAK_DIR = /opt/emacspeak
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	$(MAKE) config
+
+override_dh_auto_build:
+	$(MAKE) -j$(shell nproc)
+	cd servers/native-espeak && $(MAKE) || true
+
+override_dh_auto_test:
+	@echo "Testes executados no container de testes"
+
+override_dh_auto_install:
+	mkdir -p debian/emacspeak$(EMACSPEAK_DIR)
+	cp -r lisp debian/emacspeak$(EMACSPEAK_DIR)/
+	cp -r servers debian/emacspeak$(EMACSPEAK_DIR)/
+	cp -r sounds debian/emacspeak$(EMACSPEAK_DIR)/
+	cp -r etc debian/emacspeak$(EMACSPEAK_DIR)/
+	cp -r xsl debian/emacspeak$(EMACSPEAK_DIR)/
+	cp -r info debian/emacspeak$(EMACSPEAK_DIR)/
+	find debian/emacspeak$(EMACSPEAK_DIR) -name "*.elc" -delete
+	find debian/emacspeak$(EMACSPEAK_DIR) -name "*~" -delete
+	find debian/emacspeak$(EMACSPEAK_DIR) -name ".git*" -delete
+	chmod +x debian/emacspeak$(EMACSPEAK_DIR)/servers/espeak
+	chmod +x debian/emacspeak$(EMACSPEAK_DIR)/servers/native-espeak/libtclespeak.so || true
+
+override_dh_auto_clean:
+	$(MAKE) clean || true
+	cd servers/native-espeak && $(MAKE) clean || true
+	rm -rf debian/emacspeak
+	dh_auto_clean

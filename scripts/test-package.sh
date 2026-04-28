@@ -77,7 +77,7 @@ run_test "Verificar instalação do TCL" \
 
 # Teste 10: Tentar carregar Emacspeak no Emacs (teste básico)
 run_test "Carregar Emacspeak no Emacs (sintaxe)" \
-    "emacs --batch --eval '(progn (add-to-list \"'\"'load-path \"/opt/emacspeak/lisp\") (load \"/opt/emacspeak/lisp/emacspeak-preamble\"))' 2>&1 | grep -v 'Warning\\|advice'" || true
+    "emacs --batch --eval '(progn (add-to-list (quote load-path) \"/opt/emacspeak/lisp\") (load \"/opt/emacspeak/lisp/emacspeak-preamble.el\"))' 2>&1 | grep -q 'Loading.*emacspeak-preamble'"
 
 # Teste 11: Verificar permissões dos servidores
 run_test "Verificar permissões executáveis dos servidores" \

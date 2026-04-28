@@ -1,0 +1,143 @@
+name: Release Debian Packages
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version from tag
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG_NAME="${GITHUB_REF_NAME}"
+          VERSION="${TAG_NAME#v}"
+
+          if [[ -z "${VERSION}" || "${VERSION}" == "${TAG_NAME}" ]]; then
+            echo "❌ Tag inválida: ${TAG_NAME}. Use o formato vX.Y.Z"
+            exit 1
+          fi
+
+          echo "tag=${TAG_NAME}" >> "${GITHUB_OUTPUT}"
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "✓ Tag: ${TAG_NAME}, Versão: ${VERSION}"
+
+      - name: Update Debian changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Atualizar versão no debian/changelog
+          sed -i "1s/^emacspeak.*/emacspeak (${VERSION}) stable; urgency=medium/" debian/changelog
+
+          echo "✓ Versão atualizada para ${VERSION} em debian/changelog"
+          head -3 debian/changelog
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Building Emacspeak ${VERSION}..."
+          make automate
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Verify packages
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! ls output/emacspeak_*.deb 1>/dev/null 2>&1; then
+            echo "❌ Nenhum pacote .deb gerado"
+            exit 1
+          fi
+
+          echo "=== Pacotes gerados ==="
+          ls -lh output/*.deb
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd output
+          sha256sum *.deb > SHA256SUMS.txt
+          echo "=== Checksums SHA256 ==="
+          cat SHA256SUMS.txt
+
+      - name: Create release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          cat > release-notes.md <<EOF
+          # Emacspeak ${VERSION}
+
+          Pacotes Debian para o **Emacspeak ${VERSION}** no Debian Trixie (amd64).
+
+          ## 📦 Instalação via APT (Recomendado)
+
+          \`\`\`bash
+          sudo curl -fsSL https://a11ydevs.github.io/emacspeak-a11ydevs/debian/emacspeak-archive-keyring.gpg \\
+            -o /usr/share/keyrings/emacspeak-archive-keyring.gpg
+
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/emacspeak-archive-keyring.gpg] \\
+            https://a11ydevs.github.io/emacspeak-a11ydevs/debian stable main" | \\
+            sudo tee /etc/apt/sources.list.d/emacspeak.list
+
+          sudo apt update && sudo apt install emacspeak
+          \`\`\`
+
+          ## 📥 Instalação Manual
+
+          \`\`\`bash
+          # Baixe o pacote .deb
+          wget https://github.com/A11yDevs/emacspeak-a11ydevs/releases/download/${TAG}/emacspeak_${VERSION}_amd64.deb
+
+          # Instale
+          sudo apt install ./emacspeak_${VERSION}_amd64.deb
+          \`\`\`
+
+          ## ✅ Verificação de Integridade
+
+          Confira o arquivo \`SHA256SUMS.txt\` para validar os checksums dos pacotes.
+
+          ## 🔗 Links
+
+          - [Repositório APT](https://a11ydevs.github.io/emacspeak-a11ydevs/)
+          - [Documentação](https://github.com/A11yDevs/emacspeak-a11ydevs#readme)
+          - [Emacspeak Upstream](https://github.com/tvraman/emacspeak)
+          EOF
+
+          echo "=== Release Notes ==="
+          cat release-notes.md
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Emacspeak ${{ steps.version.outputs.tag }}
+          body_path: release-notes.md
+          files: |
+            output/*.deb
+            output/*.buildinfo
+            output/*.changes
+            output/SHA256SUMS.txt
+          draft: false
+          prerelease: false

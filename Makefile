@@ -133,3 +133,58 @@ ci: validate automate ## Pipeline CI completo (validação + build + testes)
 
 all: clean validate automate ## Build completo do zero
 	@echo "Build completo concluído!"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# APT Repository Management
+# ══════════════════════════════════════════════════════════════════════════════
+
+apt-repo: install-scripts ## Gera repositório APT local
+	@echo "Gerando repositório APT..."
+	@if [ ! -f $(OUTPUT_DIR)/emacspeak_*.deb ]; then \
+		echo "Nenhum pacote .deb encontrado."; \
+		echo "Execute 'make build' primeiro."; \
+		exit 1; \
+	fi
+	./scripts/generate-apt-repo.sh $(OUTPUT_DIR) ./apt-repo
+	@echo ""
+	@echo "Repositório APT gerado em: ./apt-repo/debian"
+	@echo "Próximo passo: make apt-sign KEY_ID=<your-key-id>"
+
+apt-sign: install-scripts ## Assina o repositório APT (requer KEY_ID=...)
+	@echo "Assinando repositório APT..."
+	@if [ -z "$(KEY_ID)" ]; then \
+		echo "Erro: KEY_ID não especificado."; \
+		echo "Uso: make apt-sign KEY_ID=<your-gpg-key-id>"; \
+		echo ""; \
+		echo "Para listar suas chaves:"; \
+		echo "  gpg --list-secret-keys --keyid-format=long"; \
+		exit 1; \
+	fi
+	@if [ ! -d ./apt-repo/debian ]; then \
+		echo "Repositório não encontrado. Execute 'make apt-repo' primeiro."; \
+		exit 1; \
+	fi
+	./scripts/sign-repo.sh ./apt-repo $(KEY_ID)
+	@echo ""
+	@echo "Repositório assinado com sucesso!"
+
+apt-clean: ## Remove repositório APT local
+	@echo "Removendo repositório APT local..."
+	rm -rf ./apt-repo
+	@echo "Repositório removido!"
+
+apt-verify: ## Verifica assinatura do repositório APT
+	@echo "Verificando assinatura do repositório..."
+	@if [ ! -f ./apt-repo/debian/dists/stable/Release.gpg ]; then \
+		echo "Repositório não assinado. Execute 'make apt-sign' primeiro."; \
+		exit 1; \
+	fi
+	gpg --verify ./apt-repo/debian/dists/stable/Release.gpg \
+		./apt-repo/debian/dists/stable/Release
+	@echo ""
+	@echo "Assinatura válida!"
+
+apt-full: build apt-repo ## Build + Gera repositório APT (sem assinar)
+	@echo ""
+	@echo "Repositório APT pronto para assinatura!"
+	@echo "Execute: make apt-sign KEY_ID=<your-key-id>"

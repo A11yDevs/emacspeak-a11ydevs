@@ -1,0 +1,76 @@
+name: CI - Build and Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build Packages and Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Building Emacspeak packages..."
+          make automate
+
+      - name: List generated packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== Pacotes gerados ==="
+          ls -lh output/*.deb
+
+      - name: Upload packages as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: emacspeak-packages
+          path: |
+            output/*.deb
+            output/*.buildinfo
+            output/*.changes
+          retention-days: 30
+
+      - name: Run package integrity tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tests/test-packages-integrity.sh
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: logs/
+          retention-days: 7
+
+  apt-repository-test:
+    name: Test APT Repository
+    runs-on: ubuntu-latest
+    # Só executa na branch main (após publicação do repositório APT)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run APT repository test in Docker
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tests/test-apt-repository.sh

@@ -3,6 +3,8 @@
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0)
 [![Debian](https://img.shields.io/badge/Debian-Trixie-red.svg)](https://www.debian.org/)
 [![Emacspeak](https://img.shields.io/badge/Emacspeak-60.0-green.svg)](https://github.com/tvraman/emacspeak)
+[![APT Repository](https://img.shields.io/badge/APT-Repository-orange.svg)](https://a11ydevs.github.io/emacspeak-a11ydevs/)
+[![CI Tests](https://github.com/A11yDevs/emacspeak-a11ydevs/actions/workflows/ci-tests.yml/badge.svg)](https://github.com/A11yDevs/emacspeak-a11ydevs/actions/workflows/ci-tests.yml)
 
 Sistema completo de construção de pacotes Debian para o **Emacspeak 60.0**, o revolucionário sistema de áudio desktop que fornece feedback auditivo completo para o GNU Emacs.
 
@@ -10,6 +12,7 @@ Sistema completo de construção de pacotes Debian para o **Emacspeak 60.0**, o 
 
 Este projeto fornece uma infraestrutura completa para:
 
+- ✅ **Instalar via APT** - Repositório Debian pronto para uso
 - ✅ Baixar o código-fonte do Emacspeak 60.0
 - ✅ Compilar em ambiente Debian Trixie
 - ✅ Criar pacotes `.deb` totalmente funcionais
@@ -17,17 +20,48 @@ Este projeto fornece uma infraestrutura completa para:
 - ✅ Suporte a múltiplos sintetizadores TTS (espeak-ng)
 - ✅ Pré-compilação nativa de arquivos Elisp
 - ✅ Configuração otimizada para produção
+- ✅ **CI/CD automatizado** com publicação no GitHub Pages
 
 ## 🚀 Início Rápido
 
-### Pré-requisitos
+### Instalação via APT (Recomendado)
+
+A forma mais fácil de instalar o Emacspeak é através do repositório APT:
+
+```bash
+# 1. Adicionar chave GPG
+sudo curl -fsSL https://a11ydevs.github.io/emacspeak-a11ydevs/debian/emacspeak-archive-keyring.gpg \
+  -o /usr/share/keyrings/emacspeak-archive-keyring.gpg
+
+# 2. Adicionar repositório
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/emacspeak-archive-keyring.gpg] \
+  https://a11ydevs.github.io/emacspeak-a11ydevs/debian stable main" | \
+  sudo tee /etc/apt/sources.list.d/emacspeak.list
+
+# 3. Instalar
+sudo apt update
+sudo apt install emacspeak
+```
+
+**Atualização:**
+```bash
+sudo apt update && sudo apt upgrade
+```
+
+📖 **[Documentação completa do repositório APT](docs/apt-repository.md)**
+
+---
+
+### Construindo Localmente (Desenvolvedores)
+
+#### Pré-requisitos
 
 - Docker (>= 20.10)
 - Docker Compose (>= 1.29)
 - 4GB de espaço em disco
 - Conexão com a Internet
 
-### Construindo o Pacote
+#### Construindo o Pacote
 
 #### Opção 1: Usando Scripts (Recomendado)
 
@@ -95,13 +129,15 @@ emacspeak-a11ydevs/
 
 ## 🔧 Uso Avançado
 
-### Instalando o Pacote Gerado
+### Instalando o Pacote Gerado Localmente
 
 ```bash
 # Em um sistema Debian/Ubuntu
-sudo dpkg -i output/emacspeak_30.0-1_*.deb
+sudo dpkg -i output/emacspeak_60.0-1_*.deb
 sudo apt-get install -f  # Resolver dependências
 ```
+
+**Nota:** Se você instalou via repositório APT, os pacotes já estão instalados. Esta seção é apenas para quem construiu localmente.
 
 ### Usando o Emacspeak
 

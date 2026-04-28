@@ -1,0 +1,316 @@
+name: Publish APT Repository (GitHub Pages)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-apt-repo:
+    runs-on: ubuntu-latest
+
+    env:
+      APT_GPG_PRIVATE_KEY_B64: ${{ secrets.APT_GPG_PRIVATE_KEY_B64 }}
+      APT_GPG_PASSPHRASE: ${{ secrets.APT_GPG_PASSPHRASE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version from tag or use default
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG_NAME="${GITHUB_REF_NAME}"
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${TAG_NAME}" =~ ^v.+ ]]; then
+            VERSION="${TAG_NAME#v}"
+          else
+            # Usa versão do Makefile se não for tag
+            VERSION="$(awk -F= '/^VERSION[[:space:]]*:?=/{gsub(/^[[:space:]]+|[[:space:]]+$/,"",$2); print $2; exit}' Makefile)"
+            if [[ -z "${VERSION}" ]]; then
+              # Fallback para versão do debian/changelog
+              VERSION="$(head -1 debian/changelog | sed 's/^.*(\([^)]*\)).*/\1/')"
+            fi
+          fi
+
+          if [[ -z "${VERSION}" ]]; then
+            echo "❌ Não foi possível resolver versão para build"
+            exit 1
+          fi
+
+          echo "tag=${TAG_NAME}" >> "${GITHUB_OUTPUT}"
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "✓ Tag: ${TAG_NAME}, Versão: ${VERSION}"
+
+      - name: Update Debian changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Atualizar versão no debian/changelog se necessário
+          CURRENT_VERSION="$(head -1 debian/changelog | sed 's/^.*(\([^)]*\)).*/\1/')"
+
+          if [[ "${CURRENT_VERSION}" != "${VERSION}" ]]; then
+            sed -i "1s/^emacspeak.*/emacspeak (${VERSION}) stable; urgency=medium/" debian/changelog
+            echo "✓ Versão atualizada para ${VERSION}"
+          else
+            echo "✓ Versão já está correta: ${VERSION}"
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Building Emacspeak packages..."
+          make automate
+
+      - name: Verify packages
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! ls output/emacspeak_*.deb 1>/dev/null 2>&1; then
+            echo "❌ Nenhum pacote .deb gerado"
+            exit 1
+          fi
+
+          echo "=== Pacotes gerados ==="
+          ls -lh output/*.deb
+
+      - name: Install apt tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends apt-utils gnupg
+
+      - name: Import GPG key for APT signing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${APT_GPG_PRIVATE_KEY_B64}" ]]; then
+            echo "❌ Secret APT_GPG_PRIVATE_KEY_B64 não configurado"
+            exit 1
+          fi
+
+          export GNUPGHOME="$(mktemp -d)"
+          chmod 700 "${GNUPGHOME}"
+          echo "GNUPGHOME=${GNUPGHOME}" >> "${GITHUB_ENV}"
+
+          echo "${APT_GPG_PRIVATE_KEY_B64}" | base64 -d | gpg --batch --import
+
+          KEY_FINGERPRINT="$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ {print $10; exit}')"
+
+          if [[ -z "${KEY_FINGERPRINT}" ]]; then
+            echo "❌ Nenhuma chave secreta GPG foi importada"
+            exit 1
+          fi
+
+          echo "APT_GPG_KEY_FINGERPRINT=${KEY_FINGERPRINT}" >> "${GITHUB_ENV}"
+          echo "✓ Chave GPG importada: ${KEY_FINGERPRINT}"
+
+      - name: Build static APT repository
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPO_ROOT="pages/debian"
+          POOL_DIR="${REPO_ROOT}/pool/main/e/emacspeak"
+          DIST_DIR="${REPO_ROOT}/dists/stable/main/binary-amd64"
+
+          mkdir -p "${POOL_DIR}" "${DIST_DIR}"
+
+          # Copiar apenas o pacote principal (sem dbgsym)
+          cp output/emacspeak_*_amd64.deb "${POOL_DIR}/"
+
+          echo "=== Pacotes no pool ==="
+          ls -lh "${POOL_DIR}/"
+
+          # Gera paths relativos (pool/main/...) no campo Filename do Packages
+          pushd "${REPO_ROOT}" >/dev/null
+          apt-ftparchive packages "pool/main" > "dists/stable/main/binary-amd64/Packages"
+          popd >/dev/null
+
+          gzip -9c "${DIST_DIR}/Packages" > "${DIST_DIR}/Packages.gz"
+
+          echo "=== Índice Packages ==="
+          head -20 "${DIST_DIR}/Packages"
+
+          # Gera Release com checksums
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin="A11yDevs" \
+            -o APT::FTPArchive::Release::Label="emacspeak-a11ydevs" \
+            -o APT::FTPArchive::Release::Suite="stable" \
+            -o APT::FTPArchive::Release::Codename="stable" \
+            -o APT::FTPArchive::Release::Architectures="amd64" \
+            -o APT::FTPArchive::Release::Components="main" \
+            release "${REPO_ROOT}/dists/stable" > "${REPO_ROOT}/dists/stable/Release"
+
+          echo "=== Release ==="
+          cat "${REPO_ROOT}/dists/stable/Release"
+
+      - name: Sign APT repository
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPO_ROOT="pages/debian"
+
+          # Normaliza segredo para evitar newline/carriage-return acidental em GitHub Secrets
+          CLEAN_PASSPHRASE="${APT_GPG_PASSPHRASE%$'\n'}"
+          CLEAN_PASSPHRASE="${CLEAN_PASSPHRASE%$'\r'}"
+
+          SIGN_BASE_ARGS=(--batch --yes --local-user "${APT_GPG_KEY_FINGERPRINT}")
+
+          if [[ -n "${CLEAN_PASSPHRASE}" ]]; then
+            SIGN_SECRET_ARGS=(--pinentry-mode loopback --passphrase-fd 0)
+          else
+            SIGN_SECRET_ARGS=()
+          fi
+
+          sign_file() {
+            local output="$1"
+            local input="$2"
+            shift 2
+            local mode_args=("$@")
+
+            if [[ -n "${CLEAN_PASSPHRASE}" ]]; then
+              if ! printf '%s' "${CLEAN_PASSPHRASE}" | gpg \
+                "${SIGN_BASE_ARGS[@]}" "${SIGN_SECRET_ARGS[@]}" "${mode_args[@]}" \
+                -o "${output}" "${input}"; then
+                echo "❌ Falha ao assinar com passphrase. Verifique APT_GPG_PASSPHRASE."
+                exit 1
+              fi
+            else
+              if ! gpg "${SIGN_BASE_ARGS[@]}" "${mode_args[@]}" \
+                -o "${output}" "${input}"; then
+                echo "❌ Falha ao assinar com chave sem passphrase."
+                exit 1
+              fi
+            fi
+          }
+
+          # Assinar Release
+          sign_file "${REPO_ROOT}/dists/stable/Release.gpg" \
+            "${REPO_ROOT}/dists/stable/Release" --detach-sign --armor
+
+          sign_file "${REPO_ROOT}/dists/stable/InRelease" \
+            "${REPO_ROOT}/dists/stable/Release" --clearsign
+
+          echo "✓ Repositório assinado"
+
+          # Exportar chaves públicas
+          gpg --batch --yes --armor --export "${APT_GPG_KEY_FINGERPRINT}" > \
+            "${REPO_ROOT}/emacspeak-archive-keyring.asc"
+
+          gpg --batch --yes --export "${APT_GPG_KEY_FINGERPRINT}" > \
+            "${REPO_ROOT}/emacspeak-archive-keyring.gpg"
+
+          echo "✓ Chaves públicas exportadas"
+
+      - name: Create index.html
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REPO_ROOT="pages/debian"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          cat > "${REPO_ROOT}/index.html" <<'HTML'
+          <!doctype html>
+          <html lang="pt-BR">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Emacspeak APT Repository</title>
+              <style>
+                body {
+                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                  max-width: 800px;
+                  margin: 2rem auto;
+                  padding: 0 1rem;
+                  line-height: 1.6;
+                }
+                pre {
+                  background: #f4f4f4;
+                  border-left: 3px solid #0366d6;
+                  padding: 1rem;
+                  overflow-x: auto;
+                }
+                code {
+                  background: #f4f4f4;
+                  padding: 0.2rem 0.4rem;
+                  border-radius: 3px;
+                }
+                h1 { color: #0366d6; }
+                h2 { margin-top: 2rem; }
+              </style>
+            </head>
+            <body>
+              <h1>📦 Emacspeak APT Repository</h1>
+              <p>Repositório Debian para o <strong>Emacspeak</strong> - O revolucionário sistema de áudio desktop para GNU Emacs.</p>
+
+              <h2>🚀 Instalação</h2>
+              <p>Em sistemas Debian/Ubuntu (amd64):</p>
+              <pre>sudo curl -fsSL https://a11ydevs.github.io/emacspeak-a11ydevs/debian/emacspeak-archive-keyring.gpg \
+  -o /usr/share/keyrings/emacspeak-archive-keyring.gpg
+
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/emacspeak-archive-keyring.gpg] \
+  https://a11ydevs.github.io/emacspeak-a11ydevs/debian stable main" | \
+  sudo tee /etc/apt/sources.list.d/emacspeak.list
+
+sudo apt update
+sudo apt install emacspeak</pre>
+
+              <h2>📋 Informações</h2>
+              <ul>
+                <li><strong>Distribuição:</strong> Debian Trixie (testing)</li>
+                <li><strong>Arquitetura:</strong> amd64</li>
+                <li><strong>Componente:</strong> main</li>
+                <li><strong>Repositório:</strong> <a href="https://github.com/A11yDevs/emacspeak-a11ydevs">GitHub</a></li>
+              </ul>
+
+              <h2>🔗 Links Úteis</h2>
+              <ul>
+                <li><a href="https://github.com/A11yDevs/emacspeak-a11ydevs">Código Fonte</a></li>
+                <li><a href="https://github.com/tvraman/emacspeak">Emacspeak Upstream</a></li>
+                <li><a href="dists/stable/Release">Release File</a></li>
+                <li><a href="emacspeak-archive-keyring.asc">Chave GPG (ASCII)</a></li>
+              </ul>
+            </body>
+          </html>
+          HTML
+
+          echo "✓ index.html criado"
+
+      - name: Prepare GitHub Pages
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Previne Jekyll processing
+          touch pages/.nojekyll
+
+          echo "=== Estrutura do repositório APT ==="
+          tree pages/ || find pages/ -type f | sort
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./pages
+          force_orphan: true

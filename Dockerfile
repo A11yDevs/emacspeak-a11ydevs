@@ -254,8 +254,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copia o pacote .deb construído
 COPY --from=builder /build/*.deb /tmp/
 
-# Instala o pacote
-RUN dpkg -i /tmp/*.deb || apt-get install -f -y
+# Instala o pacote e suas dependências
+RUN dpkg -i /tmp/*.deb || apt-get install -f -y \
+    && dpkg -s emacspeak | grep -q "Status: install ok installed" \
+    && echo "Pacote emacspeak instalado com sucesso"
 
 # Cria configuração do Emacspeak
 RUN mkdir -p /root/.emacs.d "$EMACS_ELN_CACHE" \
@@ -324,7 +326,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /build/*.deb /packages/
 COPY --from=builder /build/emacspeak/debian /packages/debian/
 
-RUN dpkg -i /packages/*.deb || apt-get install -f -y
+RUN dpkg -i /packages/*.deb || apt-get install -f -y \
+    && dpkg -s emacspeak | grep -q "Status: install ok installed" \
+    && echo "Pacote emacspeak instalado com sucesso"
 
 RUN mkdir -p /root/.emacs.d "$EMACS_ELN_CACHE" \
     && cat > /root/.emacs.d/early-init.el <<'EOF'

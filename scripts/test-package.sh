@@ -125,9 +125,9 @@ else
     TESTS_FAILED=$((TESTS_FAILED + 1))
 fi
 
-# Teste 18: Verificar dependências do pacote
-run_test "Verificar dependências do sistema" \
-    "dpkg -l | grep -q emacspeak"
+# Teste 18: Verificar se pacote está instalado
+run_test "Verificar instalação do pacote" \
+    "dpkg -s emacspeak >/dev/null 2>&1"
 
 echo ""
 echo -e "${BLUE}========================================${NC}"

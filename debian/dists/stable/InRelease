@@ -1,0 +1,42 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Architectures: amd64
+Codename: stable
+Components: main
+Date: Wed, 29 Apr 2026 03:28:09 +0000
+Label: emacspeak-a11ydevs
+Origin: A11yDevs
+Suite: stable
+MD5Sum:
+ bd9ee229e17da12b7b975ee9e96fa318              150 Release
+ f0ae30b4a1ce269302b859fbdf2e6c7b             1494 main/binary-amd64/Packages
+ 0fad6e27c8780310d15de25e1cb913ce              941 main/binary-amd64/Packages.gz
+SHA1:
+ 15e42e865599460ac115c66547acc6881e34befa              150 Release
+ 71d2153803cba749b8cf672afc87ea1a98aa6cb2             1494 main/binary-amd64/Packages
+ 146a390272b57f7cda67583c5e638cf51446174b              941 main/binary-amd64/Packages.gz
+SHA256:
+ 4e4a20420aaf88741d15b312f5f7d3456f6d6dc0e4d6369aeca0c5763cbcfdb3              150 Release
+ 8bb18e110c46bdaf82967fa52561752718471c2e3cebc3a54e80b6b5e37890e3             1494 main/binary-amd64/Packages
+ 918e96fcaec2f05bd0f03a4d51b750269d9accaf3ec35aa234147189d2b71ba5              941 main/binary-amd64/Packages.gz
+SHA512:
+ d1a37d4b02526bac375bdb9360ea4f9c7df1b074390fe0fbd33d2cd2dd4d829f7ff613a649872ba339cb9b5403f1165e47b5bdc0e2907eed11e1a28691b4bdbc              150 Release
+ 600949b02e38e47f02533d6bb7cf457ae861ec5b4d7166e389ae3653a598c704592e23f17fc09562dccf6cea4ab867eee171e5336be8a1a1a79b805f4c7fa6cd             1494 main/binary-amd64/Packages
+ f7272888f421dacf6e3b6dc8da03734074d7d46a343438a9ac3bd9d477041af79eaab3b550886dcd1050affaadaee07d19593a3f9730b4b46bb7c11a3f218aa0              941 main/binary-amd64/Packages.gz
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEz8/QPZWgN4KBjs96Ha0Cn+od4VEFAmnxesoACgkQHa0Cn+od
+4VE5Ng/+PD4kK77XciKXHUCeHT5w+CyMKxsYYgdPG5KRngUuJKXsC6kjd6O1JOkn
+yZfbmIitrlRwtZBvSxmVw0KBaePkTK+gA+QAu6wx3fdajdoeQl8Hf2kbsa/fL2vN
+JXPcurMw+ee4Ljf0sJ5acACaR30rFMhvAXlTUpZhgW2GC06fTN8AXGAZRXHubfpQ
+sODs5RE8WtHwX/qGpBWNIm0RBOyHWsC8Qzi/xcrcdC+SrCobXTydoZLf5jLxIG+Y
+IjwbgVrPcWGpC8fziwwMRIJJ7GSxxG1Q4uBZOJYFR5CIkcLKyI8qXF03ROk8hROI
+j3XhZmzxcloSjXPUGj+3fgDDmFtZsAIkK+Qf3FldgNizl4S0bkLvsfSsL95Z3NgU
+aOw/vK3UrfcYhP1Z6VYi0feNZNY+7s/+nG09+p8tPnZysKAje0DMoOf83y3eugU/
+hI759c6idu8IaONEHQ118cwDIiggOPVhJiIF4PXaigPyyan69skAj5IY5ywiULKd
+fHBh+q/sPQNWG0PhpjAKhYKqOtc5ZdF/p23Db95QBfCbQuK5+43V68QbWg3Dfiaa
+dUL2zcXQzMFW+OynputIm2oCO18Eih5BwJJXEAXxIGrOCLdgRm0CT0EKCcSYIv4O
+xbJ2N52fti7aVghgYpLCtmGEzFR/H/xNU54vFnQ4Ih3hX+jCZUc=
+=pj1v
+-----END PGP SIGNATURE-----

@@ -1,0 +1,32 @@
+Package: emacspeak
+Architecture: amd64
+Version: 60.0-1
+Priority: optional
+Section: editors
+Maintainer: A11yDevs <dev@a11ydevs.org>
+Installed-Size: 18968
+Depends: libc6 (>= 2.38), libespeak-ng1 (>= 1.52.0+dfsg), libgcc-s1 (>= 3.0), libstdc++6 (>= 5.2), libtcl8.6 (>= 8.6.0), emacs-nox | emacs-gtk | emacs-lucid | emacs, tcl, tclx8.4, espeak-ng, espeak-ng-data
+Recommends: libespeak-ng-dev, socat
+Suggests: w3m, mp3-info, vorbis-tools, sox
+Filename: pool/main/e/emacspeak/emacspeak_60.0-1_amd64.deb
+Size: 4332092
+MD5sum: d1db901d180a9dd645a5a5f037085892
+SHA1: 410cc6a1aedc44cf082ce03c209addd8ffa5d863
+SHA256: 89d542bd6eb8e7346e5ecb7a855b7018151d20db1c03251f9b386990b32d5a21
+SHA512: 254150f96608f3f7b5d8fc683a6f9060b338741e5f0c278458126a7d83d8726fc023f103f2fd30192d51f58fb6e01b0d65bf3822af79061ee271129bfe02885c
+Homepage: https://github.com/tvraman/emacspeak
+Description: Sistema completo de fala para o emacs
+ O Emacspeak é um sistema completo de fala auditiva para o Emacs
+ que abre um novo horizonte no modo como interagimos com computadores.
+ Ao ampliar o paradigma padrão de 2-D em GUIs, o Emacspeak permite
+ acesso sem visão, tanto localmente quanto remotamente, a toda a
+ potência do ambiente Emacs.
+ .
+ Este pacote inclui:
+  * Interface de fala completa para o Emacs
+  * Módulos de fala para diversos modos do Emacs
+  * Servidor TTS nativo para espeak-ng
+  * Suporte a múltiplos sintetizadores de voz
+  * Ícones auditivos e retorno sonoro
+  * Acesso a aplicações web acessíveis
+

@@ -66,22 +66,30 @@ echo
 
 echo "◆ Validando conteúdo do pacote..."
 
-# Listar conteúdo
-CONTENTS="$(dpkg-deb -c "${EMACSPEAK_PKG}")"
-
 # Verificar arquivos essenciais (Emacspeak instala em /opt/emacspeak/)
-for file in \
-  "./opt/emacspeak/lisp/emacspeak-setup.el" \
-  "./opt/emacspeak/servers/" \
-  "./opt/emacspeak/etc/"; do
+echo "  > Verificando emacspeak-setup.el..."
+if dpkg-deb -c "${EMACSPEAK_PKG}" | grep -q "emacspeak-setup.el"; then
+  echo "  ✓ ./opt/emacspeak/lisp/emacspeak-setup.el"
+else
+  echo "  ❌ Arquivo ausente: ./opt/emacspeak/lisp/emacspeak-setup.el"
+  exit 1
+fi
 
-  if echo "${CONTENTS}" | grep -q "${file}"; then
-    echo "  ✓ ${file}"
-  else
-    echo "  ❌ Arquivo ausente: ${file}"
-    exit 1
-  fi
-done
+echo "  > Verificando diretório servers/..."
+if dpkg-deb -c "${EMACSPEAK_PKG}" | grep -q "./opt/emacspeak/servers/"; then
+  echo "  ✓ ./opt/emacspeak/servers/"
+else
+  echo "  ❌ Diretório ausente: ./opt/emacspeak/servers/"
+  exit 1
+fi
+
+echo "  > Verificando diretório etc/..."
+if dpkg-deb -c "${EMACSPEAK_PKG}" | grep -q "./opt/emacspeak/etc/"; then
+  echo "  ✓ ./opt/emacspeak/etc/"
+else
+  echo "  ❌ Diretório ausente: ./opt/emacspeak/etc/"
+  exit 1
+fi
 echo
 
 echo "◆ Testando instalação e execução em container Debian..."

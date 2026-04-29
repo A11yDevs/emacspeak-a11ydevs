@@ -267,7 +267,7 @@ jobs:
               <p>Em sistemas Debian/Ubuntu (amd64):</p>
               <pre>sudo curl -fsSL https://a11ydevs.github.io/emacspeak-a11ydevs/debian/emacspeak-archive-keyring.gpg -o /usr/share/keyrings/emacspeak-archive-keyring.gpg
 
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/emacspeak-archive-keyring.gpg] https://a11ydevs.github.io/emacspeak-a11ydevs/debian stable main" | sudo tee /etc/apt/sources.list.d/emacspeak.list
+echo &quot;deb [arch=amd64 signed-by=/usr/share/keyrings/emacspeak-archive-keyring.gpg] https://a11ydevs.github.io/emacspeak-a11ydevs/debian stable main&quot; | sudo tee /etc/apt/sources.list.d/emacspeak.list
 
 sudo apt update
 sudo apt install emacspeak</pre>

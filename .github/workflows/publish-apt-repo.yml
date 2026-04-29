@@ -229,67 +229,69 @@ jobs:
           REPO_ROOT="pages/debian"
           VERSION="${{ steps.version.outputs.version }}"
 
-          cat > "${REPO_ROOT}/index.html" <<'HTML'
-          <!doctype html>
-          <html lang="pt-BR">
-            <head>
-              <meta charset="utf-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1">
-              <title>Emacspeak APT Repository</title>
-              <style>
-                body {
-                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                  max-width: 800px;
-                  margin: 2rem auto;
-                  padding: 0 1rem;
-                  line-height: 1.6;
-                }
-                pre {
-                  background: #f4f4f4;
-                  border-left: 3px solid #0366d6;
-                  padding: 1rem;
-                  overflow-x: auto;
-                }
-                code {
-                  background: #f4f4f4;
-                  padding: 0.2rem 0.4rem;
-                  border-radius: 3px;
-                }
-                h1 { color: #0366d6; }
-                h2 { margin-top: 2rem; }
-              </style>
-            </head>
-            <body>
-              <h1>📦 Emacspeak APT Repository</h1>
-              <p>Repositório Debian para o <strong>Emacspeak</strong> - O revolucionário sistema de áudio desktop para GNU Emacs.</p>
+          cat > "${REPO_ROOT}/index.html" <<'EOF'
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emacspeak APT Repository</title>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  line-height: 1.6;
+}
+pre {
+  background: #f4f4f4;
+  border-left: 3px solid #0366d6;
+  padding: 1rem;
+  overflow-x: auto;
+}
+code {
+  background: #f4f4f4;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+}
+h1 { color: #0366d6; }
+h2 { margin-top: 2rem; }
+</style>
+</head>
+<body>
+<h1>Emacspeak APT Repository</h1>
+<p>Repositório Debian para o Emacspeak - O revolucionário sistema de áudio desktop para GNU Emacs.</p>
 
-              <h2>🚀 Instalação</h2>
-              <p>Em sistemas Debian/Ubuntu (amd64):</p>
-              <pre>sudo curl -fsSL https://a11ydevs.github.io/emacspeak-a11ydevs/debian/emacspeak-archive-keyring.gpg -o /usr/share/keyrings/emacspeak-archive-keyring.gpg
+<h2>Instalação</h2>
+<p>Em sistemas Debian/Ubuntu (amd64):</p>
+<pre>
+sudo curl -fsSL https://a11ydevs.github.io/emacspeak-a11ydevs/debian/emacspeak-archive-keyring.gpg -o /usr/share/keyrings/emacspeak-archive-keyring.gpg
 
-echo &quot;deb [arch=amd64 signed-by=/usr/share/keyrings/emacspeak-archive-keyring.gpg] https://a11ydevs.github.io/emacspeak-a11ydevs/debian stable main&quot; | sudo tee /etc/apt/sources.list.d/emacspeak.list
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/emacspeak-archive-keyring.gpg] https://a11ydevs.github.io/emacspeak-a11ydevs/debian stable main" | sudo tee /etc/apt/sources.list.d/emacspeak.list
 
 sudo apt update
-sudo apt install emacspeak</pre>
+sudo apt install emacspeak
+</pre>
 
-              <h2>📋 Informações</h2>
-              <ul>
-                <li><strong>Distribuição:</strong> Debian Trixie (testing)</li>
-                <li><strong>Arquitetura:</strong> amd64</li>
-                <li><strong>Componente:</strong> main</li>
-                <li><strong>Repositório:</strong> <a href="https://github.com/A11yDevs/emacspeak-a11ydevs">GitHub</a></li>
-              </ul>
+<h2>Informações</h2>
+<ul>
+<li><strong>Distribuição:</strong> Debian Trixie (testing)</li>
+<li><strong>Arquitetura:</strong> amd64</li>
+<li><strong>Componente:</strong> main</li>
+<li><strong>Repositório:</strong> <a href="https://github.com/A11yDevs/emacspeak-a11ydevs">GitHub</a></li>
+</ul>
 
-              <h2>🔗 Links Úteis</h2>
-              <ul>
-                <li><a href="https://github.com/A11yDevs/emacspeak-a11ydevs">Código Fonte</a></li>
-                <li><a href="https://github.com/tvraman/emacspeak">Emacspeak Upstream</a></li>
-                <li><a href="dists/stable/Release">Release File</a></li>
-                <li><a href="emacspeak-archive-keyring.asc">Chave GPG (ASCII)</a></li>
-              </ul>
-            </body>
-          </html>
-          HTML
+<h2>Links Úteis</h2>
+<ul>
+<li><a href="https://github.com/A11yDevs/emacspeak-a11ydevs">Código Fonte</a></li>
+<li><a href="https://github.com/tvraman/emacspeak">Emacspeak Upstream</a></li>
+<li><a href="dists/stable/Release">Release File</a></li>
+<li><a href="emacspeak-archive-keyring.asc">Chave GPG (ASCII)</a></li>
+</ul>
+</body>
+</html>
+EOF
 
           echo "✓ index.html criado"
 

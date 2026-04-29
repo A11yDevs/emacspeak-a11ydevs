@@ -58,19 +58,3 @@ jobs:
           name: test-logs
           path: logs/
           retention-days: 7
-
-  apt-repository-test:
-    name: Test APT Repository
-    runs-on: ubuntu-latest
-    # Só executa na branch main (após publicação do repositório APT)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Run APT repository test in Docker
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash tests/test-apt-repository.sh

@@ -313,3 +313,31 @@ EOF
           publish_branch: gh-pages
           publish_dir: ./pages
           force_orphan: true
+
+      - name: Wait for GitHub Pages to be available
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RELEASE_URL="https://a11ydevs.github.io/emacspeak-a11ydevs/debian/dists/stable/Release"
+
+          echo "Aguardando publicação do GitHub Pages..."
+          for attempt in $(seq 1 24); do
+            if curl -fsSL "${RELEASE_URL}" >/dev/null 2>&1; then
+              echo "✓ GitHub Pages disponível (tentativa ${attempt}/24)"
+              exit 0
+            fi
+
+            echo "  Aguardando... tentativa ${attempt}/24"
+            sleep 10
+          done
+
+          echo "❌ GitHub Pages não publicou o arquivo Release após 4 minutos"
+          exit 1
+
+      - name: Validate published APT repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Validando repositório APT publicado..."
+          bash tests/test-apt-repository.sh

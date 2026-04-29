@@ -127,13 +127,18 @@ dpkg-query -W emacspeak >/dev/null || {
   exit 1
 }
 
-test -f /usr/bin/emacspeak || {
-  echo "❌ Binário /usr/bin/emacspeak não encontrado"
+test -f /opt/emacspeak/lisp/emacspeak-setup.el || {
+  echo "❌ Arquivo /opt/emacspeak/lisp/emacspeak-setup.el não encontrado"
   exit 1
 }
 
-test -d /usr/share/emacs/site-lisp/emacspeak || {
-  echo "❌ Diretório de Elisp não encontrado"
+test -d /opt/emacspeak/servers || {
+  echo "❌ Diretório /opt/emacspeak/servers não encontrado"
+  exit 1
+}
+
+test -d /opt/emacspeak/etc || {
+  echo "❌ Diretório /opt/emacspeak/etc não encontrado"
   exit 1
 }
 

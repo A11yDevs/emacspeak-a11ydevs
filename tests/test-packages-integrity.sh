@@ -67,9 +67,14 @@ echo
 echo "◆ Validando conteúdo do pacote..."
 
 # Verificar arquivos essenciais (Emacspeak instala em /opt/emacspeak/)
-# Redirecionar stderr para suprimir erros de broken pipe do tar/dpkg-deb
+# Usar arquivo temporário para evitar problemas com pipefail e SIGPIPE
+PKG_CONTENTS_FILE="$(mktemp)"
+trap 'rm -f "${PKG_CONTENTS_FILE}"' EXIT
+
+dpkg-deb -c "${EMACSPEAK_PKG}" > "${PKG_CONTENTS_FILE}" 2>/dev/null
+
 echo "  > Verificando emacspeak-setup.el..."
-if dpkg-deb -c "${EMACSPEAK_PKG}" 2>/dev/null | grep -q "emacspeak-setup.el"; then
+if grep -Fq "./opt/emacspeak/lisp/emacspeak-setup.el" "${PKG_CONTENTS_FILE}"; then
   echo "  ✓ ./opt/emacspeak/lisp/emacspeak-setup.el"
 else
   echo "  ❌ Arquivo ausente: ./opt/emacspeak/lisp/emacspeak-setup.el"
@@ -77,7 +82,7 @@ else
 fi
 
 echo "  > Verificando diretório servers/..."
-if dpkg-deb -c "${EMACSPEAK_PKG}" 2>/dev/null | grep -q "./opt/emacspeak/servers/"; then
+if grep -Fq "./opt/emacspeak/servers/" "${PKG_CONTENTS_FILE}"; then
   echo "  ✓ ./opt/emacspeak/servers/"
 else
   echo "  ❌ Diretório ausente: ./opt/emacspeak/servers/"
@@ -85,7 +90,7 @@ else
 fi
 
 echo "  > Verificando diretório etc/..."
-if dpkg-deb -c "${EMACSPEAK_PKG}" 2>/dev/null | grep -q "./opt/emacspeak/etc/"; then
+if grep -Fq "./opt/emacspeak/etc/" "${PKG_CONTENTS_FILE}"; then
   echo "  ✓ ./opt/emacspeak/etc/"
 else
   echo "  ❌ Diretório ausente: ./opt/emacspeak/etc/"

@@ -69,11 +69,11 @@ echo "◆ Validando conteúdo do pacote..."
 # Listar conteúdo
 CONTENTS="$(dpkg-deb -c "${EMACSPEAK_PKG}")"
 
-# Verificar arquivos essenciais
+# Verificar arquivos essenciais (Emacspeak instala em /opt/emacspeak/)
 for file in \
-  "./usr/bin/emacspeak" \
-  "./usr/share/emacs/site-lisp/emacspeak/" \
-  "./etc/emacspeak.sh"; do
+  "./opt/emacspeak/lisp/emacspeak-setup.el" \
+  "./opt/emacspeak/servers/" \
+  "./opt/emacspeak/etc/"; do
 
   if echo "${CONTENTS}" | grep -q "${file}"; then
     echo "  ✓ ${file}"
@@ -107,29 +107,29 @@ dpkg -s emacspeak >/dev/null || {
 }
 
 echo "  > Verificando arquivos instalados..."
-test -f /usr/bin/emacspeak || {
-  echo "❌ Binário /usr/bin/emacspeak não encontrado"
+test -f /opt/emacspeak/lisp/emacspeak-setup.el || {
+  echo "❌ Arquivo emacspeak-setup.el não encontrado em /opt/emacspeak/lisp/"
   exit 1
 }
 
-test -d /usr/share/emacs/site-lisp/emacspeak || {
-  echo "❌ Diretório de Elisp não encontrado"
+test -d /opt/emacspeak/servers || {
+  echo "❌ Diretório de servidores TTS não encontrado"
   exit 1
 }
 
-test -f /etc/emacspeak.sh || {
-  echo "❌ Arquivo de configuração /etc/emacspeak.sh não encontrado"
+test -d /opt/emacspeak/etc || {
+  echo "❌ Diretório de configuração não encontrado"
   exit 1
 }
 
 echo "  > Testando carregamento do Elisp..."
-emacs --batch --eval "(progn (add-to-list '\''load-path \"/usr/share/emacs/site-lisp/emacspeak\") (require '\''emacspeak-setup))" 2>&1 | grep -q "error" && {
+emacs --batch --eval "(progn (add-to-list '\''load-path \"/opt/emacspeak/lisp\") (require '\''emacspeak-setup))" 2>&1 | grep -q "error" && {
   echo "❌ Erro ao carregar emacspeak-setup"
   exit 1
 } || true
 
 echo "  > Verificando servidor TTS espeak..."
-test -x /usr/share/emacs/site-lisp/emacspeak/servers/espeak || {
+test -x /opt/emacspeak/servers/espeak || {
   echo "❌ Servidor TTS espeak não executável"
   exit 1
 }
